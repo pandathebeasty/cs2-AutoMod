@@ -126,8 +126,8 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         if (string.IsNullOrWhiteSpace(message))
             return HookResult.Continue;
 
-        // Exempt admins.
-        if (!string.IsNullOrEmpty(Config.ExemptFlag) && AdminManager.PlayerHasPermissions(player, Config.ExemptFlag))
+        // Admins with the bypass flag are never checked.
+        if (!string.IsNullOrEmpty(Config.FlagBypass) && AdminManager.PlayerHasPermissions(player, Config.FlagBypass))
             return HookResult.Continue;
 
         // Whitelisted content (e.g. own server names) is always allowed.
@@ -204,7 +204,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     {
         if (player is not { IsValid: true } || player.IsBot || player.IsHLTV)
             return;
-        if (!string.IsNullOrEmpty(Config.ExemptFlag) && AdminManager.PlayerHasPermissions(player, Config.ExemptFlag))
+        if (!string.IsNullOrEmpty(Config.FlagBypass) && AdminManager.PlayerHasPermissions(player, Config.FlagBypass))
             return;
 
         var name = player.PlayerName ?? string.Empty;

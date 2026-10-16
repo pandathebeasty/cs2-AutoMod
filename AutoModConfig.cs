@@ -16,8 +16,8 @@ public sealed class AutoModConfig : BasePluginConfig
     /// Players holding this admin flag/permission are completely exempt from AutoMod. Empty = nobody
     /// is exempt. Example: "@css/ban" or "@css/chat".
     /// </summary>
-    [JsonPropertyName("ExemptFlag")]
-    public string ExemptFlag { get; set; } = "@css/ban";
+    [JsonPropertyName("FlagBypass")]
+    public string FlagBypass { get; set; } = "@css/ban";
 
     /// <summary>
     /// Seconds after which a category's accumulated strikes are forgotten if no new violation occurs.

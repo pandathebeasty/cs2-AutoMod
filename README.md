@@ -52,7 +52,7 @@ Reload the files at runtime from the server console: `css_automod_reload`.
 
 | Key | Default | Description |
 | --- | --- | --- |
-| `ExemptFlag` | `@css/ban` | Players with this flag/permission are never checked. Empty = nobody exempt. |
+| `FlagBypass` | `@css/ban` | Players with this flag/permission are never checked. Empty = nobody exempt. |
 | `FilterBypass` | your server names | Substrings never blocked (whitelist). |
 | `StrikeResetSeconds` | `300` | Seconds of quiet after which a category's strikes reset. 0 = never. |
 | `NameCheck.Enabled` | `true` | Rename players whose name matches a rule. |
