@@ -1,0 +1,9 @@
+{
+  "Prefix": "{Red}[AutoMod] {Default}",
+  "warn.Language": "{Red}Watch your language.",
+  "warn.Advertising": "{Red}Advertising is not allowed.",
+  "warn.Spam": "{Red}Stop spamming.",
+  "warn.Strike": "{Grey}(strike {0}/{1})",
+  "name.Renamed": "{Red}Your name was not allowed and has been changed. Please pick a new one.",
+  "name.Announce": "{Default}Player {Red}{0} {Default}was renamed by AutoMod (disallowed name)."
+}

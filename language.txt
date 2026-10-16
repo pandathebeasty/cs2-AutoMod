@@ -1,0 +1,288 @@
+# AutoMod - Language rules (EN / RO / RU) - extended coverage
+# One entry per line. '#' = comment.
+#   plain word  -> whole-word match, case-insensitive ("ass" won't hit "class")
+#   /regex/     -> wrap a line in slashes for a regex
+#
+# The /regex/ entries catch common bypasses:
+#   repeated letters (fuuuck), leet digits (sh1t, a55), separators (f.u.c.k, f-u-c-k, f u c k).
+# The plain words below cover exact slurs/insults and their frequent spellings.
+# Trim anything too aggressive for your community.
+
+# ============================================================
+# ENGLISH - core profanity (regex, bypass-resistant)
+# ============================================================
+/f+\W*u+\W*c+\W*k+(?:e+r+s?|i+n+g+|e+d+|a+z?|t+a+r+d+|w+i+t+|o+f+f+)?/
+/f+a+g+(?:g+o+t+s?|s)?/
+/s+h+[i1l]+t+(?:t+y+|h+e+a+d+|s|e+d+)?/
+/b+[i1l]+t+c+h+(?:e+s+|i+n+g+|y+|a+s+s+)?/
+/a+s+s+h+[o0]+l+e+s?/
+/\ba+s+s+(?:h+a+t+|w+[i1l]+p+e+|c+l+o+w+n+|m+u+n+c+h+)?\b/
+/d+[i1l]+c+k+(?:h+e+a+d+|w+a+d+|f+a+c+e+|s)?/
+/c+u+n+t+s?/
+/p+u+s+s+(?:y+|i+e+s+)/
+/b+a+s+t+a+r+d+s?/
+/w+h+[o0]+r+e+s?/
+/s+l+u+t+s?/
+/d+[i1l]+l+d+[o0]+/
+/c+[o0]+c+k+(?:s+u+c+k+e+r+|h+e+a+d+)?/
+/m+[o0]+t+h+e+r+\W*f+u+c+k+(?:e+r+|i+n+g+)?/
+/n+[i1l]+g+(?:g+[e3]+r+s?|g+a+h?|a+h?)/
+/r+e+t+a+r+d+(?:e+d+|s)?/
+/j+e+r+k+\W*[o0]+f+f+/
+/j+a+c+k+\W*a+s+s+/
+/d+[o0]+u+c+h+e+(?:b+a+g+)?/
+/t+w+a+t+s?/
+/w+a+n+k+(?:e+r+s?|i+n+g+)?/
+/b+[o0]+l+l+[o0]+c+k+s+/
+/p+r+[i1l]+c+k+s?/
+/c+r+a+p+(?:p+y+)?/
+/d+a+m+n+(?:i+t+|e+d+)?/
+/b+u+l+l+\W*s+h+[i1l]+t+/
+/s+c+u+m+b+a+g+/
+/d+u+m+b+\W*(?:a+s+s+|f+u+c+k+)/
+/p+[i1l]+s+s+(?:e+d+|[o0]+f+f+)?/
+/s+k+a+n+k+/
+/t+[i1l]+t+s+/
+/b+[o0]+[o0]+b+s+/
+/h+[o0]+r+n+y+/
+/f+u+k+(?:e+r+|i+n+g+|u+)?/
+/w+t+f+/
+/s+t+f+u+/
+/g+t+f+o+/
+
+# ENGLISH - hate / harassment / threats
+/n+a+z+[i1]+/
+/h+e+i+l+\W*h+i+t+l+e+r+/
+/k+k+k+/
+/g+[o0]+\W*k+[i1l]+l+l+\W*(?:y+o+u+r+\W*s+e+l+f+|u+r+\W*s+e+l+f+)/
+/k+[i1l]+l+l+\W*y+o+u+r+\W*s+e+l+f+/
+/\bk+y+s+\b/
+/g+[o0]+\W*t+[o0]+\W*h+e+l+l+/
+/s+c+r+e+w+\W*y+o+u+/
+/e+a+t+\W*s+h+[i1l]+t+/
+/s+u+c+k+\W*(?:m+y+|a+)/
+
+# ENGLISH - exact words (whole-word)
+fuck
+fucker
+fucking
+fuk
+fck
+shit
+bitch
+asshole
+cunt
+pussy
+bastard
+whore
+slut
+dick
+cock
+faggot
+nigger
+nigga
+retard
+motherfucker
+bullshit
+dumbass
+jackass
+douchebag
+prick
+wanker
+bollocks
+twat
+dildo
+skank
+scumbag
+pedophile
+pedo
+rapist
+
+# ============================================================
+# ROMANIAN - core profanity (regex)
+# ============================================================
+/p+u+l+(?:a+|e+|a+r+a+u+|i+s+t+)/
+/\bp+l+a+\b/
+/m+u+i+e+(?:s+t+)?/
+/m+[a@]+\W*t+a+/
+/\bm+[a@]+t+a+\b/
+/f+u+t+(?:e+|u+t+|a+i+|u+\W*t+e+|e+m+a+t+a+|u+t+u+)/
+/\bf+u+t+\b/
+/c+[a@]+c+a+(?:t+|r+e+a+|t+u+l+e+)?/
+/r+a+h+a+t+(?:u+l+e+)?/
+/p+[i1l]+z+d+(?:a+|e+|u+t+a+)/
+/c+u+r+v+(?:a+|e+|a+r+|a+s+t+r+a+|u+l+i+t+a+)/
+/b+[o0]+u+l+e+/
+/p+r+[o0]+s+t+(?:u+l+e+|[o0]+v+a+n+e+|i+e+|a+n+a+c+)?/
+/i+d+i+[o0]+t+(?:u+l+e+|i+l+e+|o+a+l+e+)?/
+/d+[o0]+b+[i1l]+t+[o0]+c+(?:u+l+e+)?/
+/j+e+g+(?:[o0]+s+|o+a+s+a+)?/
+/l+a+b+a+r+(?:u+l+e+)?/
+/s+u+g+[i1l]+(?:\W*p+u+l+a+|\W*c+[o0]+a+i+e+|c+i+)/
+/m+[o0]+r+t+[i1l]+[i1l]+\W*(?:t+a+i+|m+a+t+i+i+)/
+/d+u+\W*t+e+\W*d+r+a+c+u+/
+/p+[i1l]+z+d+a+\W*(?:m+a+t+i+i+|p+l+a+)/
+/c+a+r+a+c+a+t+[i1l]+t+a+/
+/t+r+a+n+c+a+n+a+t+/
+/n+e+n+[o0]+r+[o0]+c+[i1l]+t+(?:u+l+e+)?/
+/s+c+a+r+b+a+/
+/j+a+v+r+a+/
+/g+a+[o0]+z+/
+/p+[i1l]+s+a+t+/
+/b+a+s+[i1l]+n+a+/
+/c+a+c+a+r+e+/
+/f+r+a+i+e+r+(?:e+)?/
+/t+a+m+p+[i1l]+t+(?:u+l+e+)?/
+/c+r+e+t+[i1l]+n+(?:u+l+e+)?/
+/i+m+b+e+c+[i1l]+l+/
+
+# ROMANIAN - exact words
+pula
+pizda
+muie
+futu
+cacat
+rahat
+curva
+curve
+bou
+boule
+prost
+prostule
+idiot
+idiotule
+dobitoc
+jeg
+jegos
+labar
+nenorocitule
+tampit
+tampitule
+cretin
+cretinule
+imbecil
+javra
+scarba
+fraier
+pulifrici
+
+# ============================================================
+# RUSSIAN - core profanity (Cyrillic)
+# ============================================================
+/х+у+[йиеёяю]+/
+/\bх+у+[йяе]\b/
+/п+и+з+д+[аеоуыёйи]+/
+/е+б+[аеиоуёыя]+/
+/\bе+б+\b/
+/б+л+я+[дтх]*[ьяи]*/
+/\bб+л+я+\b/
+/с+у+к+[аиуо]+/
+/м+у+д+[аоеи]+к*/
+/г+а+н+д+о+н+/
+/д+о+л+б+о+[её]+б+/
+/п+и+д+[оа]+р+(?:а+с+)?/
+/\bч+м+о+\b/
+/д+е+б+и+л+/
+/и+д+и+о+т+/
+/у+р+о+д+/
+/с+в+о+л+о+ч+ь*/
+/т+в+а+р+ь*/
+/з+а+е+б+[аеи]+/
+/н+а+х+у+й+/
+/п+о+ш+[её]+л+\W*т+ы+/
+/е+б+а+н+[аыоий]+/
+/\bх+е+р+\b/
+/ш+л+ю+х+[аи]+/
+/г+о+в+н+[оа]+/
+/з+а+л+у+п+а+/
+/д+р+о+ч+[иеауёı]+/
+/п+е+д+и+к+/
+/г+о+м+и+к+/
+/у+е+б+[аои]+к*/
+/о+х+у+е+/
+/п+и+з+д+е+ц+/
+/х+у+е+с+о+с+/
+/д+е+р+ь+м+о+/
+/с+у+ч+[каи]+/
+/б+л+е+а+т+ь*/
+
+# RUSSIAN - latin transliteration
+/\bh+u+[iy]+\b/
+/p+i+z+d+(?:a|e+c+)/
+/\bb+l+[yj]+a+(?:t+)?\b/
+/s+u+k+a+/
+/m+u+d+a+k+/
+/n+a+h+u+[iy]+/
+/p+i+d+o+r+/
+/e+b+a+n+/
+/z+a+l+u+p+a+/
+/d+r+o+c+h+/
+/o+h+u+e+/
+/p+i+z+d+e+c+/
+/h+u+e+s+o+s+/
+/d+e+r+m+o+/
+/g+o+v+n+o+/
+/b+l+e+a+t+/
+/u+e+b+[o0]+k+/
+
+# ============================================================
+# USER LIST - Romanian (incl. diacritic variants)
+# ============================================================
+coaie
+ma-ta
+sug
+sugi
+suge
+sugeti
+sugeți
+muist
+muista
+muistă
+muisti
+muiști
+muiste
+futi
+fuți
+fute
+futut
+fututa
+fututi
+futuți
+futute
+futu-te
+futu-ti
+futu-ți
+caca
+căcat
+pulă
+pule
+pulii
+pizdă
+pizde
+pizdii
+
+# ============================================================
+# USER LIST - sexual / orientation terms
+# NOTE: "sex", "gay", "lesbian" are everyday words too and WILL cause false
+# positives. Kept per request - comment out if they over-trigger.
+# ============================================================
+sex
+gay
+lesby
+lesbian
+
+# ============================================================
+# USER LIST - English (whole-word)
+# ============================================================
+fucked
+fuckers
+motherfuckers
+motherfucking
+shitty
+bitches
+bastards
+assholes
+dickhead
+cocksucker
+cunts
+stfu

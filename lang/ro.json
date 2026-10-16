@@ -1,0 +1,9 @@
+{
+  "Prefix": "{Red}[AutoMod] {Default}",
+  "warn.Language": "{Red}Ai grijă la limbaj.",
+  "warn.Advertising": "{Red}Reclama nu este permisă.",
+  "warn.Spam": "{Red}Nu mai da spam.",
+  "warn.Strike": "{Grey}(avertisment {0}/{1})",
+  "name.Renamed": "{Red}Numele tău nu a fost permis și a fost schimbat. Te rugăm alege altul.",
+  "name.Announce": "{Default}Jucătorul {Red}{0} {Default}a fost redenumit de AutoMod (nume interzis)."
+}

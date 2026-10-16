@@ -1,0 +1,9 @@
+{
+  "Prefix": "{Red}[AutoMod] {Default}",
+  "warn.Language": "{Red}Следите за языком.",
+  "warn.Advertising": "{Red}Реклама запрещена.",
+  "warn.Spam": "{Red}Прекратите спам.",
+  "warn.Strike": "{Grey}(предупреждение {0}/{1})",
+  "name.Renamed": "{Red}Ваше имя недопустимо и было изменено. Пожалуйста, выберите другое.",
+  "name.Announce": "{Default}Игрок {Red}{0} {Default}был переименован AutoMod (недопустимое имя)."
+}

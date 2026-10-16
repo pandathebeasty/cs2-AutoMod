@@ -1,0 +1,281 @@
+# AutoMod - Advertising rules (EN / RO / RU) - extended coverage
+# One entry per line. '#' = comment. plain word = whole-word; /regex/ = regex.
+# Regex is best here for links, invites, IPs and contacts.
+
+# ============================================================
+# LINKS / URLS (including obfuscated "dot")
+# ============================================================
+/https?:\/\/\S+/
+/www\.\S+/
+/\b\S+\.(?:com|net|org|ro|ru|gg|tv|io|me|xyz|club|store|shop|site|online|pro|biz|info|link|co|us|eu|de|fr|uk|pl|ua|md|cz|top|fun|live|app|dev|games?|server|host)\b/
+/\b\S+\s*(?:\.|dot|\(dot\)|\[dot\]|\sdot\s|,)\s*(?:com|net|org|ro|ru|gg|tv|io|me|xyz|club|store|shop|online)\b/
+/\b[\w-]+\s*\[\.\]\s*\w{2,}/
+/\bbit\.ly\/\S+/
+/\btinyurl\.com\/\S+/
+/\bcutt\.ly\/\S+/
+/\bshorturl\S*/
+
+# ============================================================
+# DISCORD / TELEGRAM / SOCIAL INVITES
+# ============================================================
+/discord\s*(?:\.|dot|\(dot\))?\s*gg\s*[\/:]\s*\S+/
+/discord(?:app)?\s*(?:\.|dot)?\s*com\s*\/\s*invite\s*\/\s*\S+/
+/\bdiscord\.gg\b/
+/\bdisc\s*\.?\s*gg\b/
+/\bt\.me\/\S+/
+/\btelegram\s*(?:\.|dot)?\s*(?:me|org)\b/
+/\btg\s*:\s*@?\S+/
+/\bjoin\s+(?:my|our|the)\s+(?:discord|server|guild|clan|group|channel)\b/
+/\b(?:vk\.com|vk\.cc|vkontakte)\/?\S*/
+/\b(?:youtube\.com|youtu\.be)\/\S+/
+/\b(?:instagram|insta|facebook|fb|tiktok|twitch|steamcommunity)\s*(?:\.|dot)?\s*com\/\S+/
+/\bwhats?app\b/
+/\bskype\s*[:=]\s*\S+/
+/@[A-Za-z0-9_]{3,}\s*(?:on\s+)?(?:telegram|tg|discord|insta|instagram)/
+
+# ============================================================
+# IP ADDRESSES / SERVER CONNECT
+# ============================================================
+/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d{1,5})?\b/
+/\b\d{1,3}\s*\.\s*\d{1,3}\s*\.\s*\d{1,3}\s*\.\s*\d{1,3}\b/
+/\bconnect\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/
+/\bip\s*[:=]\s*\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/
+/\bserver\s*ip\b/
+
+# ============================================================
+# ENGLISH bait / selling
+# ============================================================
+/\b(?:better|best|cooler|nicer|bigger)\s+server\b/
+/\bbest\s+(?:cs2|csgo)\s+server\b/
+/\bfree\s+(?:vip|skins?|cases?|credits?|coins?|rank)\b/
+/\bcheap\s+(?:vip|skins?|boost|elo|rank|accounts?)\b/
+/\bbuy\s+(?:vip|skins?|cheats?|boost|elo|rank|account)\b/
+/\bsell(?:ing)?\s+\S+/
+/\bcheats?\s+(?:for\s+sale|here|available)\b/
+/\bboost(?:ing)?\s+service\b/
+/\bgiveaway\s+\S+/
+/\bpromo\s*code\b/
+/\buse\s+code\s+\S+/
+/\bcoupon\s+code\b/
+freevip
+freeskins
+freecases
+csgoroll
+csgoempire
+hellcase
+csgolive
+
+# ============================================================
+# ROMANIAN bait / selling
+# ============================================================
+/\bserver\s+mai\s+bun\b/
+/\bcel\s+mai\s+bun\s+server\b/
+/\bserver\s+(?:nou|tare|misto)\b/
+/\bintra(?:ti)?\s+pe\s+\S+/
+/\bveni(?:ti|t)\s+pe\s+\S+/
+/\bhai(?:ti)?\s+pe\s+\S+/
+/\bvip\s+(?:gratis|gratuit)\b/
+/\b(?:cumpar|vand|vinde|vindem)\s+(?:vip|skin|skinuri|conturi|cont|boost|rank)\b/
+/\bskinuri\s+gratis\b/
+/\bda(?:ti|u)\s+vip\b/
+/\bcod\s+promo\b/
+/\bfolositi\s+codul\b/
+
+# ============================================================
+# RUSSIAN bait / selling (Cyrillic + translit)
+# ============================================================
+/\bл+у+ч+ш+и+й+\s+с+е+р+в+е+р+\b/
+/\bн+о+в+ы+й+\s+с+е+р+в+е+р+\b/
+/\bз+а+х+о+д+и+(?:т+е+)?\s+н+а+\s*\S+/
+/\bв+с+т+у+п+а+й+(?:т+е+)?\b/
+/\bп+е+р+е+х+о+д+и+(?:т+е+)?\s+н+а+\b/
+/\bб+е+с+п+л+а+т+н+ы+й+\s+в+и+п+\b/
+/\b(?:к+у+п+л+ю+|п+р+о+д+а+м+|п+р+о+д+а+ж+а+)\s+\S+/
+/\bс+к+и+н+ы+\s+б+е+с+п+л+а+т+н+о+\b/
+/\bп+р+о+м+о+\s*к+о+д+\b/
+/\blu+ch+shi+y+\s+server\b/
+/\bno+vy+y+\s+server\b/
+/\bza+ho+di(?:te)?\s+na\b/
+/\bbe+spla+tny+y+\s+vi+p\b/
+
+# ============================================================
+# USER LIST - competing servers / communities (whole-word)
+# These are literal names; matched as whole words so partial hits are avoided.
+# ============================================================
+indungi.ro
+bucuresti.ro
+bucuresti
+bucllg
+oradea
+oradea.llg
+oradea.laleagane
+oradea.ro
+usp.ro
+fairside.ro
+fairside
+alpha.llg
+alphallg
+alpha.laleagane
+elite.llg
+elite.laleagane
+ro.llg
+ro.laleagane.ro
+romania.llg
+romania.laleagane
+goarena
+goawp
+legitheaven
+csgoromania
+1tap.ro
+arena.ro
+pubzone.ro
+pubzone
+intrusii.ro
+intrusii
+cspower.ro
+cspower
+death.ro
+ggez.ro
+warmup.ro
+astramania.ro
+astramania
+jaxi.ro
+jaxi.tv
+zwix.club
+avulon.ro
+avulon
+parabestial.ro
+parabestial
+mevid
+mevid.ro
+csgo.ro
+alphacs.ro
+alphacs
+nephrite.ro
+nephrite
+playarena.ro
+playarena
+playes.ro
+playes
+krimes.ro
+krimes
+elders.ro
+elders
+gamelife.ro
+gamelife
+strix.ro
+strix
+zzandrei.ro
+zzandrei
+cartieru
+cartieru.ro
+awpllg
+awp.laleagane.ro
+b-hhod.ro
+elitegamers.ro
+elitegamers
+ezwin.ro
+nevermore.ro
+nevermore
+vortex.ro
+zonek.ro
+zonek
+gomania
+gomania.ro
+veteranii
+veteranii.ro
+epic-gamers
+trollorders
+trollorder
+allgamers
+allgamers.ro
+allgames
+allgames.ro
+gold.llg
+goldllg
+arena.llg.ro
+arena.llg
+arenallg
+cs2.1tap.ro
+ez.usp.ro
+premium.llg.ro
+
+# ---- Hashed LLG/laleagane callsigns from the list ----
+/\b(?:bucuresti|alpha|elite|awp|ro|romania|gold|arena|premium)\s*\.?\s*llg\b/
+/\blaleagane\b/
+
+# ============================================================
+# USER LIST - skin gambling / trading / marketplaces
+# ============================================================
+csfail
+csfail.com
+csgostash.com
+csgostash
+bitskins
+bitskins.com
+hellcase.com
+skin.club
+freeskins.com
+ggdrop.wtf
+ggdrop.com
+drop.skin
+vvcsgo.com
+keydrop.com
+key-drop.com
+keydrop
+csgocases
+skinport.com
+skinbaron.de
+skinsmonkey.com
+skinswap.com
+skinwallet.com
+skinbid.com
+skins.cash
+cs.money
+cs.trade
+csfloat.com
+csgofloat.com
+csgoskins.gg
+dmarket.com
+tradeit.gg
+swap.gg
+buff.163.com
+buff.market
+gamerpay.gg
+waxpeer.com
+white.market
+mannco.store
+loot.farm
+lootbear.com
+farmskins.com
+csgoempire.com
+csgoroll.com
+csgopolygon.com
+csgofast.com
+csgoluck.com
+csgo500.com
+500.casino
+clash.gg
+
+# ============================================================
+# USER LIST - promo / referral bait (EN / RO)
+# ============================================================
+/\bfree\s+(?:skins?|knife|cases?)\b/
+/\bdeposit\s+bonus\b/
+promocode
+/\bbonus\s+code\b/
+/\buse\s+(?:my\s+)?code\b/
+/\breferral\s+code\b/
+/\bcod\s+promo(?:tional|țional)?\b/
+/\bcod\s+bonus\b/
+/\bfolose(?:s|ș)te\s+codul\b/
+
+# ============================================================
+# USER LIST - risky generic TLD / word rules (may cause FALSE POSITIVES)
+# Kept per request. Comment any line out if it blocks normal chat.
+# ============================================================
+/\b\S+\.(?:ru|bg|org|co\.uk)\b/
+goarena.ro
+youtube.com
+twitch.com
+twitch.tv
