@@ -44,9 +44,10 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
 
     public AutoMod()
     {
-        _language = new WordList(Logger, "Language");
-        _advertising = new WordList(Logger, "Advertising");
-        _names = new WordList(Logger, "NameCheck");
+        // Logger is not available in the constructor; it is wired in LoadWordFiles via SetLogger.
+        _language = new WordList(null, "Language");
+        _advertising = new WordList(null, "Advertising");
+        _names = new WordList(null, "NameCheck");
     }
 
     private static T[] Init<T>(Func<T> factory)
@@ -94,6 +95,14 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
 
     private void LoadWordFiles()
     {
+        // Logger may now be available (OnConfigParsed can run before/after Load); wire it in.
+        if (Logger != null)
+        {
+            _language.SetLogger(Logger);
+            _advertising.SetLogger(Logger);
+            _names.SetLogger(Logger);
+        }
+
         if (!string.IsNullOrEmpty(Config.Language.WordsFile))
             _language.Load(Path.Combine(ModuleDirectory, Config.Language.WordsFile));
         if (!string.IsNullOrEmpty(Config.Advertising.WordsFile))

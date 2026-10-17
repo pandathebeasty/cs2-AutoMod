@@ -14,14 +14,17 @@ namespace AutoMod;
 public sealed class WordList
 {
     private readonly List<Regex> _patterns = new();
-    private readonly ILogger _logger;
+    private ILogger? _logger;
     private readonly string _label;
 
-    public WordList(ILogger logger, string label)
+    public WordList(ILogger? logger, string label)
     {
         _logger = logger;
         _label = label;
     }
+
+    /// <summary>Sets/updates the logger (the plugin's Logger isn't ready in the constructor).</summary>
+    public void SetLogger(ILogger logger) => _logger = logger;
 
     public int Count => _patterns.Count;
 
@@ -32,7 +35,7 @@ public sealed class WordList
 
         if (!File.Exists(path))
         {
-            _logger.LogWarning("[AutoMod] {Label} file not found: {Path} (check disabled until it exists)", _label, path);
+            _logger?.LogWarning("[AutoMod] {Label} file not found: {Path} (check disabled until it exists)", _label, path);
             return;
         }
 
@@ -59,11 +62,11 @@ public sealed class WordList
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("[AutoMod] {Label}: invalid rule '{Line}' skipped ({Err})", _label, line, ex.Message);
+                _logger?.LogWarning("[AutoMod] {Label}: invalid rule '{Line}' skipped ({Err})", _label, line, ex.Message);
             }
         }
 
-        _logger.LogInformation("[AutoMod] {Label}: loaded {Count} rule(s) from {Path}", _label, _patterns.Count, path);
+        _logger?.LogInformation("[AutoMod] {Label}: loaded {Count} rule(s) from {Path}", _label, _patterns.Count, path);
     }
 
     /// <summary>True if the message matches any rule.</summary>
