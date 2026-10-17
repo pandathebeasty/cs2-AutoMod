@@ -27,7 +27,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     public override string ModuleName => "AutoMod";
     public override string ModuleAuthor => "panda";
     public override string ModuleDescription => "Automatic chat & name moderation: language, advertising, spam, names.";
-    public override string ModuleVersion => "1.1.0";
+    public override string ModuleVersion => "1.0.0";
 
     public AutoModConfig Config { get; set; } = new();
 
