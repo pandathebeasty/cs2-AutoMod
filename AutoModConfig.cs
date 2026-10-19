@@ -27,6 +27,13 @@ public sealed class AutoModConfig : BasePluginConfig
     public int StrikeResetSeconds { get; set; } = 300;
 
     /// <summary>
+    /// When true, every detected violation (language / advertising / spam / name) is written to a
+    /// daily log file in the plugin's "logs" folder: who it was, the strike count, and the punish.
+    /// </summary>
+    [JsonPropertyName("LogToFile")]
+    public bool LogToFile { get; set; } = true;
+
+    /// <summary>
     /// Whitelist of substrings that are NEVER blocked, even if a rule would match them. Checked
     /// case-insensitively against the whole message (and player name for NameCheck) before any rule:
     /// if the text contains one of these, that content is allowed through. Use it to protect your

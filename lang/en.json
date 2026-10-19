@@ -5,5 +5,11 @@
   "warn.Spam": "{Red}Stop spamming.",
   "warn.Strike": "{Grey}(strike {0}/{1})",
   "name.Renamed": "{Red}Your name was not allowed and has been changed. Please pick a new one.",
-  "name.Announce": "{Default}Player {Red}{0} {Default}was renamed by AutoMod (disallowed name)."
+  "name.Announce": "{Default}Player {Red}{0} {Default}was renamed by AutoMod (disallowed name).",
+  "log.Violation": "[{0}] {1} | {2} ({3}) | strikes {4}/{5} | {6}",
+  "log.WarnOnly": "warn only",
+  "log.Punish": "PUNISH -> {0}",
+  "log.NameCheck": "[{0}] NameCheck | '{1}' ({2}) -> '{3}' | {4}",
+  "log.Renamed": "renamed",
+  "log.RenamedPunish": "PUNISH -> {0} + renamed"
 }

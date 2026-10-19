@@ -5,5 +5,11 @@
   "warn.Spam": "{Red}Nu mai da spam.",
   "warn.Strike": "{Grey}(avertisment {0}/{1})",
   "name.Renamed": "{Red}Numele tău nu a fost permis și a fost schimbat. Te rugăm alege altul.",
-  "name.Announce": "{Default}Jucătorul {Red}{0} {Default}a fost redenumit de AutoMod (nume interzis)."
+  "name.Announce": "{Default}Jucătorul {Red}{0} {Default}a fost redenumit de AutoMod (nume interzis).",
+  "log.Violation": "[{0}] {1} | {2} ({3}) | avertismente {4}/{5} | {6}",
+  "log.WarnOnly": "doar avertisment",
+  "log.Punish": "PEDEAPSĂ -> {0}",
+  "log.NameCheck": "[{0}] NameCheck | '{1}' ({2}) -> '{3}' | {4}",
+  "log.Renamed": "redenumit",
+  "log.RenamedPunish": "PEDEAPSĂ -> {0} + redenumit"
 }

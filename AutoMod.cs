@@ -27,7 +27,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     public override string ModuleName => "AutoMod";
     public override string ModuleAuthor => "panda";
     public override string ModuleDescription => "Automatic chat & name moderation: language, advertising, spam, names.";
-    public override string ModuleVersion => "1.0.0";
+    public override string ModuleVersion => "1.0.1";
 
     public AutoModConfig Config { get; set; } = new();
 
@@ -44,7 +44,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
 
     public AutoMod()
     {
-        // Logger is not available in the constructor; it is wired in LoadWordFiles via SetLogger.
+        // Logger is not available in the constructor; it is wired in Load() via SetLogger.
         _language = new WordList(null, "Language");
         _advertising = new WordList(null, "Advertising");
         _names = new WordList(null, "NameCheck");
@@ -196,16 +196,69 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
 
         _strikes[slot, c]++;
         _lastStrikeTime[slot, c] = now;
+        var strikes = _strikes[slot, c];
 
-        player.PrintToChat($" {Localizer["Prefix"]}{Localizer[$"warn.{category}"]} {Localizer["warn.Strike", _strikes[slot, c], Math.Max(1, threshold)]}");
+        player.PrintToChat($" {Localizer["Prefix"]}{Localizer[$"warn.{category}"]} {Localizer["warn.Strike", strikes, Math.Max(1, threshold)]}");
 
-        if (threshold > 0 && _strikes[slot, c] >= threshold)
+        var punished = threshold > 0 && strikes >= threshold;
+        LogViolation(player, category.ToString(), strikes, threshold, punished, punished ? punishCommand : null);
+
+        if (punished)
         {
             RunPunishment(player, punishCommand);
             _strikes[slot, c] = 0;      // reset after punishing
             if (category == Category.Spam) _messageTimes[slot].Clear();
         }
     }
+
+    // --- File logging -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Appends one line to the daily log (logs/dd-MM-yyyy.log in the plugin folder) describing a
+    /// detected violation: who, which check, strike count, and the punishment (if any).
+    /// </summary>
+    private void LogViolation(CCSPlayerController player, string category, int strikes, int threshold, bool punished, string? punishCommand)
+    {
+        if (!Config.LogToFile) return;
+
+        var steamId = player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString();
+        var punishText = punished
+            ? Localizer["log.Punish", ResolvePlaceholders(punishCommand ?? string.Empty, player)]
+            : Localizer["log.WarnOnly"];
+
+        var line = Localizer["log.Violation",
+            DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"),
+            category,
+            player.PlayerName,
+            steamId,
+            strikes,
+            Math.Max(1, threshold),
+            punishText];
+
+        WriteLog(line);
+    }
+
+    private void WriteLog(string line)
+    {
+        try
+        {
+            var dir = Path.Combine(ModuleDirectory, "logs");
+            Directory.CreateDirectory(dir);
+            var file = Path.Combine(dir, $"{DateTime.Now:dd-MM-yyyy}.log");
+            File.AppendAllText(file, line + Environment.NewLine);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("[AutoMod] Could not write log: {Err}", ex.Message);
+        }
+    }
+
+    /// <summary>Substitutes {userid}/{steamid}/{name} in a command template (for logging/running).</summary>
+    private static string ResolvePlaceholders(string template, CCSPlayerController player)
+        => template
+            .Replace("{userid}", (player.UserId ?? 0).ToString())
+            .Replace("{steamid}", player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString())
+            .Replace("{name}", player.PlayerName);
 
     // --- Name moderation (integrated NameChecker) ---------------------------------------------
 
@@ -240,18 +293,24 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         if (Config.NameCheck.AnnounceToAll)
             Server.PrintToChatAll($" {Localizer["Prefix"]}{Localizer["name.Announce", name]}");
 
-        Logger.LogInformation("[AutoMod] Renamed '{Old}' -> '{New}' ({SteamId})",
-            name, replacement, player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString());
+        var steamId = player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString();
+        Logger.LogInformation("[AutoMod] Renamed '{Old}' -> '{New}' ({SteamId})", name, replacement, steamId);
+
+        if (Config.LogToFile)
+        {
+            var punishText = string.IsNullOrWhiteSpace(Config.NameCheck.PunishCommand)
+                ? Localizer["log.Renamed"]
+                : Localizer["log.RenamedPunish", ResolvePlaceholders(Config.NameCheck.PunishCommand, player)];
+            WriteLog(Localizer["log.NameCheck",
+                DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"), name, steamId, replacement, punishText]);
+        }
     }
 
     private void RunPunishment(CCSPlayerController player, string template)
     {
         if (string.IsNullOrWhiteSpace(template)) return;
 
-        var cmd = template
-            .Replace("{userid}", (player.UserId ?? 0).ToString())
-            .Replace("{steamid}", player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString())
-            .Replace("{name}", player.PlayerName);
+        var cmd = ResolvePlaceholders(template, player);
 
         try
         {
