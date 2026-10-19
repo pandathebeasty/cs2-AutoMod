@@ -46,6 +46,37 @@ idiot
 
 Reload the files at runtime from the server console: `css_automod_reload`.
 
+## Logging
+
+Every violation is logged with: time, category, player name + SteamID, strike count, and the
+punishment applied. Two independent sinks:
+
+- **File** (`LogToFile`) — a daily file `logs/dd-MM-yyyy.log` in the plugin folder.
+- **Discord webhook** (`Discord`) — posted to a channel, in **text** or **embed** mode.
+
+### Discord
+
+```json
+"Discord": {
+  "Enabled": false,
+  "WebhookUrl": "",
+  "Mode": "text",                 // "text" (default) or "embed"
+  "Username": "AutoMod",
+  "AvatarUrl": "",
+  "Format": "**{category}** | `{name}` ({steamid}) | strikes {strikes}/{threshold} | {punish}",
+  "EmbedTitle": "AutoMod - {category}",
+  "EmbedDescription": "**{name}** (`{steamid}`)\nStrikes: **{strikes}/{threshold}**\n{punish}",
+  "EmbedColor": "#e23b3b",
+  "ShowPlayerAvatar": true
+}
+```
+
+- **Mode `text`** — sends one line using `Format`.
+- **Mode `embed`** — a rich card using `EmbedTitle` / `EmbedDescription` / `EmbedColor`. When
+  `ShowPlayerAvatar` is true, the offender's **Steam avatar** is shown as the thumbnail — resolved
+  from the public Steam profile (no Steam Web API key required).
+- Placeholders (both modes): `{category} {name} {steamid} {userid} {strikes} {threshold} {punish} {time}`.
+
 ## Config
 
 `addons/counterstrikesharp/configs/plugins/AutoMod/AutoMod.json`
@@ -55,6 +86,8 @@ Reload the files at runtime from the server console: `css_automod_reload`.
 | `FlagBypass` | `@css/ban` | Players with this flag/permission are never checked. Empty = nobody exempt. |
 | `FilterBypass` | your server names | Substrings never blocked (whitelist). |
 | `StrikeResetSeconds` | `300` | Seconds of quiet after which a category's strikes reset. 0 = never. |
+| `LogToFile` | `true` | Write each violation to `logs/dd-MM-yyyy.log`. |
+| `Discord.*` | disabled | Discord webhook logging (text/embed, optional player avatar). See above. |
 | `NameCheck.Enabled` | `true` | Rename players whose name matches a rule. |
 | `NameCheck.WordsFile` | `names.txt` | Rule file tested against player names. |
 | `NameCheck.ReplacementName` | `BAD NAME \| CHANGE IT` | What a flagged player is renamed to. |

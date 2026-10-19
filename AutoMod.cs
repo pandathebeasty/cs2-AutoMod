@@ -27,7 +27,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     public override string ModuleName => "AutoMod";
     public override string ModuleAuthor => "panda";
     public override string ModuleDescription => "Automatic chat & name moderation: language, advertising, spam, names.";
-    public override string ModuleVersion => "1.0.1";
+    public override string ModuleVersion => "1.1.0";
 
     public AutoModConfig Config { get; set; } = new();
 
@@ -41,6 +41,8 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     private readonly List<double>[] _messageTimes = Init(() => new List<double>());
     private readonly int[,] _strikes = new int[64, 3];
     private readonly double[,] _lastStrikeTime = new double[64, 3];
+
+    private DiscordNotifier? _discord;
 
     public AutoMod()
     {
@@ -101,6 +103,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             _language.SetLogger(Logger);
             _advertising.SetLogger(Logger);
             _names.SetLogger(Logger);
+            _discord ??= new DiscordNotifier(Logger);
         }
 
         if (!string.IsNullOrEmpty(Config.Language.WordsFile))
@@ -219,23 +222,29 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     /// </summary>
     private void LogViolation(CCSPlayerController player, string category, int strikes, int threshold, bool punished, string? punishCommand)
     {
-        if (!Config.LogToFile) return;
-
         var steamId = player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString();
+        var time = Now();
         var punishText = punished
             ? Localizer["log.Punish", ResolvePlaceholders(punishCommand ?? string.Empty, player)]
             : Localizer["log.WarnOnly"];
 
-        var line = Localizer["log.Violation",
-            DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"),
-            category,
-            player.PlayerName,
-            steamId,
-            strikes,
-            Math.Max(1, threshold),
-            punishText];
+        if (Config.LogToFile)
+        {
+            WriteLog(Localizer["log.Violation",
+                time, category, player.PlayerName, steamId, strikes, Math.Max(1, threshold), punishText]);
+        }
 
-        WriteLog(line);
+        _discord?.Send(Config.Discord, new Dictionary<string, string>
+        {
+            ["category"]  = category,
+            ["name"]      = player.PlayerName,
+            ["steamid"]   = steamId,
+            ["userid"]    = (player.UserId ?? 0).ToString(),
+            ["strikes"]   = strikes.ToString(),
+            ["threshold"] = Math.Max(1, threshold).ToString(),
+            ["punish"]    = punishText.ToString(),
+            ["time"]      = time
+        }, steamId);
     }
 
     private void WriteLog(string line)
@@ -244,13 +253,22 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         {
             var dir = Path.Combine(ModuleDirectory, "logs");
             Directory.CreateDirectory(dir);
-            var file = Path.Combine(dir, $"{DateTime.Now:dd-MM-yyyy}.log");
+            // Guard against '/' in the configured file-name format (would break the path on Linux).
+            var stamp = DateTime.Now.ToString(Config.LogFileDateFormat).Replace('/', '-').Replace('\\', '-');
+            var file = Path.Combine(dir, $"{stamp}.log");
             File.AppendAllText(file, line + Environment.NewLine);
         }
         catch (Exception ex)
         {
             Logger.LogError("[AutoMod] Could not write log: {Err}", ex.Message);
         }
+    }
+
+    /// <summary>Current timestamp formatted with the configured DateFormat (safe fallback on error).</summary>
+    private string Now()
+    {
+        try { return DateTime.Now.ToString(Config.DateFormat); }
+        catch { return DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"); }
     }
 
     /// <summary>Substitutes {userid}/{steamid}/{name} in a command template (for logging/running).</summary>
@@ -296,14 +314,25 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         var steamId = player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString();
         Logger.LogInformation("[AutoMod] Renamed '{Old}' -> '{New}' ({SteamId})", name, replacement, steamId);
 
+        var time = Now();
+        var punishText = string.IsNullOrWhiteSpace(Config.NameCheck.PunishCommand)
+            ? Localizer["log.Renamed"]
+            : Localizer["log.RenamedPunish", ResolvePlaceholders(Config.NameCheck.PunishCommand, player)];
+
         if (Config.LogToFile)
+            WriteLog(Localizer["log.NameCheck", time, name, steamId, replacement, punishText]);
+
+        _discord?.Send(Config.Discord, new Dictionary<string, string>
         {
-            var punishText = string.IsNullOrWhiteSpace(Config.NameCheck.PunishCommand)
-                ? Localizer["log.Renamed"]
-                : Localizer["log.RenamedPunish", ResolvePlaceholders(Config.NameCheck.PunishCommand, player)];
-            WriteLog(Localizer["log.NameCheck",
-                DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"), name, steamId, replacement, punishText]);
-        }
+            ["category"]  = "NameCheck",
+            ["name"]      = name,                 // the original (bad) name
+            ["steamid"]   = steamId,
+            ["userid"]    = (player.UserId ?? 0).ToString(),
+            ["strikes"]   = "1",
+            ["threshold"] = "1",
+            ["punish"]    = punishText.ToString(),
+            ["time"]      = time
+        }, steamId);
     }
 
     private void RunPunishment(CCSPlayerController player, string template)

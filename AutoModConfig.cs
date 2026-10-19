@@ -34,6 +34,20 @@ public sealed class AutoModConfig : BasePluginConfig
     public bool LogToFile { get; set; } = true;
 
     /// <summary>
+    /// .NET date/time format for the {time} placeholder shown in file logs and Discord messages.
+    /// Example: "dd-MM-yyyy HH:mm:ss" (day-month-year) or "yyyy-MM-dd HH:mm:ss".
+    /// </summary>
+    [JsonPropertyName("DateFormat")]
+    public string DateFormat { get; set; } = "dd-MM-yyyy HH:mm:ss";
+
+    /// <summary>
+    /// .NET date format used for the daily log FILE NAME (&lt;this&gt;.log). Do NOT use '/' - it is a
+    /// path separator and would break the path on Linux. Default: "dd-MM-yyyy".
+    /// </summary>
+    [JsonPropertyName("LogFileDateFormat")]
+    public string LogFileDateFormat { get; set; } = "dd-MM-yyyy";
+
+    /// <summary>
     /// Whitelist of substrings that are NEVER blocked, even if a rule would match them. Checked
     /// case-insensitively against the whole message (and player name for NameCheck) before any rule:
     /// if the text contains one of these, that content is allowed through. Use it to protect your
@@ -65,6 +79,61 @@ public sealed class AutoModConfig : BasePluginConfig
 
     [JsonPropertyName("NameCheck")]
     public NameCheckConfig NameCheck { get; set; } = new();
+
+    [JsonPropertyName("Discord")]
+    public DiscordConfig Discord { get; set; } = new();
+}
+
+/// <summary>
+/// Discord webhook logging. Every violation can also be posted to a Discord channel.
+/// Two modes: "text" (a single configurable line) or "embed" (a rich card that also shows the
+/// player's Steam avatar - resolved from the public profile XML, no Steam API key needed).
+///
+/// Placeholders available in Format / EmbedTitle / EmbedDescription:
+///   {category} {name} {steamid} {userid} {strikes} {threshold} {punish} {time}
+/// </summary>
+public sealed class DiscordConfig
+{
+    [JsonPropertyName("Enabled")]
+    public bool Enabled { get; set; } = false;
+
+    /// <summary>The Discord webhook URL. Leave empty to disable.</summary>
+    [JsonPropertyName("WebhookUrl")]
+    public string WebhookUrl { get; set; } = "";
+
+    /// <summary>"text" (default) or "embed".</summary>
+    [JsonPropertyName("Mode")]
+    public string Mode { get; set; } = "text";
+
+    /// <summary>Webhook display name (optional).</summary>
+    [JsonPropertyName("Username")]
+    public string Username { get; set; } = "AutoMod";
+
+    /// <summary>Avatar for the webhook user itself (optional, not the player).</summary>
+    [JsonPropertyName("AvatarUrl")]
+    public string AvatarUrl { get; set; } = "";
+
+    // ---- text mode ----
+    /// <summary>Message template for "text" mode. Supports the placeholders listed above.</summary>
+    [JsonPropertyName("Format")]
+    public string Format { get; set; } = "**{category}** | `{name}` ({steamid}) | strikes {strikes}/{threshold} | {punish}";
+
+    // ---- embed mode ----
+    /// <summary>Embed title (embed mode).</summary>
+    [JsonPropertyName("EmbedTitle")]
+    public string EmbedTitle { get; set; } = "AutoMod - {category}";
+
+    /// <summary>Embed description (embed mode).</summary>
+    [JsonPropertyName("EmbedDescription")]
+    public string EmbedDescription { get; set; } = "**{name}** (`{steamid}`)\nStrikes: **{strikes}/{threshold}**\n{punish}";
+
+    /// <summary>Embed side-colour as a hex string (e.g. "#e23b3b").</summary>
+    [JsonPropertyName("EmbedColor")]
+    public string EmbedColor { get; set; } = "#e23b3b";
+
+    /// <summary>Show the player's Steam avatar as the embed thumbnail (embed mode).</summary>
+    [JsonPropertyName("ShowPlayerAvatar")]
+    public bool ShowPlayerAvatar { get; set; } = true;
 }
 
 /// <summary>
