@@ -11,5 +11,6 @@
   "log.Punish": "PEDEAPSĂ -> {0}",
   "log.NameCheck": "[{0}] NameCheck | '{1}' ({2}) -> '{3}' | {4}",
   "log.Renamed": "redenumit",
-  "log.RenamedPunish": "PEDEAPSĂ -> {0} + redenumit"
+  "log.RenamedPunish": "PEDEAPSĂ -> {0} + redenumit",
+  "log.Message": " | mesaj: {0}"
 }

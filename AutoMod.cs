@@ -27,7 +27,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     public override string ModuleName => "AutoMod";
     public override string ModuleAuthor => "panda";
     public override string ModuleDescription => "Automatic chat & name moderation: language, advertising, spam, names.";
-    public override string ModuleVersion => "1.1.0";
+    public override string ModuleVersion => "1.1.1";
 
     public AutoModConfig Config { get; set; } = new();
 
@@ -76,7 +76,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             if (!Config.NameCheck.Enabled) return;
             var player = Utilities.GetPlayerFromSlot(slot);
             if (player is { IsValid: true, IsBot: false })
-                AddTimer(0.5f, () => CheckName(player));
+                ScheduleNameCheck(player, Math.Max(1, Config.NameCheckAttempts));
         });
 
         RegisterListener<Listeners.OnClientDisconnect>(slot =>
@@ -105,6 +105,10 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             _names.SetLogger(Logger);
             _discord ??= new DiscordNotifier(Logger);
         }
+
+        _language.SetNormalization(Config.NormalizeText);
+        _advertising.SetNormalization(Config.NormalizeText);
+        _names.SetNormalization(Config.NormalizeText);
 
         if (!string.IsNullOrEmpty(Config.Language.WordsFile))
             _language.Load(Path.Combine(ModuleDirectory, Config.Language.WordsFile));
@@ -149,21 +153,21 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         // Language.
         if (Config.Language.Enabled && _language.IsMatch(message))
         {
-            Handle(player, Category.Language, Config.Language.Threshold, Config.Language.PunishCommand);
+            Handle(player, Category.Language, Config.Language.Threshold, Config.Language.PunishCommand, message);
             return HookResult.Handled; // block the message
         }
 
         // Advertising.
         if (Config.Advertising.Enabled && _advertising.IsMatch(message))
         {
-            Handle(player, Category.Advertising, Config.Advertising.Threshold, Config.Advertising.PunishCommand);
+            Handle(player, Category.Advertising, Config.Advertising.Threshold, Config.Advertising.PunishCommand, message);
             return HookResult.Handled;
         }
 
         // Spam.
         if (Config.Spam.Enabled && IsSpam(slot))
         {
-            Handle(player, Category.Spam, Config.Spam.Threshold, Config.Spam.PunishCommand);
+            Handle(player, Category.Spam, Config.Spam.Threshold, Config.Spam.PunishCommand, message);
             return HookResult.Handled;
         }
 
@@ -183,7 +187,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         return times.Count > Config.Spam.MaxMessages;
     }
 
-    private void Handle(CCSPlayerController player, Category category, int threshold, string punishCommand)
+    private void Handle(CCSPlayerController player, Category category, int threshold, string punishCommand, string message)
     {
         var slot = player.Slot;
         var c = (int)category;
@@ -204,7 +208,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         player.PrintToChat($" {Localizer["Prefix"]}{Localizer[$"warn.{category}"]} {Localizer["warn.Strike", strikes, Math.Max(1, threshold)]}");
 
         var punished = threshold > 0 && strikes >= threshold;
-        LogViolation(player, category.ToString(), strikes, threshold, punished, punished ? punishCommand : null);
+        LogViolation(player, category.ToString(), strikes, threshold, punished, punished ? punishCommand : null, message);
 
         if (punished)
         {
@@ -220,7 +224,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     /// Appends one line to the daily log (logs/dd-MM-yyyy.log in the plugin folder) describing a
     /// detected violation: who, which check, strike count, and the punishment (if any).
     /// </summary>
-    private void LogViolation(CCSPlayerController player, string category, int strikes, int threshold, bool punished, string? punishCommand)
+    private void LogViolation(CCSPlayerController player, string category, int strikes, int threshold, bool punished, string? punishCommand, string message = "")
     {
         var steamId = player.AuthorizedSteamID?.SteamId64.ToString() ?? player.SteamID.ToString();
         var time = Now();
@@ -231,7 +235,8 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         if (Config.LogToFile)
         {
             WriteLog(Localizer["log.Violation",
-                time, category, player.PlayerName, steamId, strikes, Math.Max(1, threshold), punishText]);
+                time, category, player.PlayerName, steamId, strikes, Math.Max(1, threshold), punishText]
+                + (string.IsNullOrEmpty(message) ? string.Empty : Localizer["log.Message", message]));
         }
 
         _discord?.Send(Config.Discord, new Dictionary<string, string>
@@ -243,6 +248,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             ["strikes"]   = strikes.ToString(),
             ["threshold"] = Math.Max(1, threshold).ToString(),
             ["punish"]    = punishText.ToString(),
+            ["message"]   = message,
             ["time"]      = time
         }, steamId);
     }
@@ -279,6 +285,30 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             .Replace("{name}", player.PlayerName);
 
     // --- Name moderation (integrated NameChecker) ---------------------------------------------
+
+    /// <summary>
+    /// Re-runs the name check with the first attempt after 0.5s and the rest spaced by
+    /// NameCheckRetrySeconds. The player's name is not reliably set right after connect (reconnects,
+    /// busy servers), so a single check can miss it. Retries stop as soon as a name is present.
+    /// </summary>
+    private void ScheduleNameCheck(CCSPlayerController player, int attemptsLeft, float firstDelay = 0.5f)
+    {
+        AddTimer(firstDelay, () =>
+        {
+            if (player is not { IsValid: true } || player.IsBot || player.IsHLTV)
+                return;
+
+            // If the name isn't readable yet, try again later until attempts run out.
+            if (string.IsNullOrWhiteSpace(player.PlayerName))
+            {
+                if (attemptsLeft > 1)
+                    ScheduleNameCheck(player, attemptsLeft - 1, (float)Math.Max(0.1, Config.NameCheckRetrySeconds));
+                return;
+            }
+
+            CheckName(player);
+        });
+    }
 
     private void CheckName(CCSPlayerController player)
     {
@@ -331,6 +361,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             ["strikes"]   = "1",
             ["threshold"] = "1",
             ["punish"]    = punishText.ToString(),
+            ["message"]   = string.Empty,
             ["time"]      = time
         }, steamId);
     }

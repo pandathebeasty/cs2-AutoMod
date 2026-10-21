@@ -17,11 +17,19 @@ public sealed class WordList
     private ILogger? _logger;
     private readonly string _label;
 
+    // When true, messages are also matched in a "normalized" form that defeats common bypasses:
+    // repeated letters are collapsed (puuulaaa -> pula) and separators between letters are removed
+    // (p.u.l.a / p u l a / p-u-l-a -> pula). Set via SetNormalization from the plugin config.
+    private bool _normalize;
+
     public WordList(ILogger? logger, string label)
     {
         _logger = logger;
         _label = label;
     }
+
+    /// <summary>Enables/disables bypass-resistant normalized matching for this list.</summary>
+    public void SetNormalization(bool enabled) => _normalize = enabled;
 
     /// <summary>Sets/updates the logger (the plugin's Logger isn't ready in the constructor).</summary>
     public void SetLogger(ILogger logger) => _logger = logger;
@@ -73,11 +81,55 @@ public sealed class WordList
     public bool IsMatch(string message)
     {
         if (string.IsNullOrEmpty(message)) return false;
+
+        // Try the raw message first.
+        if (MatchesAny(message))
+            return true;
+
+        // Then, if enabled, try a bypass-normalized form (collapsed repeats, stripped separators).
+        if (_normalize)
+        {
+            var normalized = Normalize(message);
+            if (normalized.Length != message.Length && MatchesAny(normalized))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool MatchesAny(string text)
+    {
         foreach (var p in _patterns)
         {
-            try { if (p.IsMatch(message)) return true; }
+            try { if (p.IsMatch(text)) return true; }
             catch { /* a pathological pattern must not break chat */ }
         }
         return false;
+    }
+
+    /// <summary>
+    /// Collapses runs of the same letter to a single letter and removes common "spacer" characters
+    /// used to split a word (space, '.', '-', '_', '*', '|', ',', '+'). This turns bypass spellings
+    /// like "p u l a", "p.u.l.a", "puuulaaa" into "pula" so the plain-word rules catch them.
+    /// Comparison of repeated letters is case-insensitive.
+    /// </summary>
+    private static string Normalize(string input)
+    {
+        const string separators = " .\t-_*|,+/\\";
+        var sb = new System.Text.StringBuilder(input.Length);
+        var prev = '\0';
+        foreach (var ch in input)
+        {
+            if (separators.IndexOf(ch) >= 0)
+                continue; // drop separators between letters
+
+            // Collapse an immediate repeat of the same letter (case-insensitive).
+            if (prev != '\0' && char.ToLowerInvariant(ch) == char.ToLowerInvariant(prev))
+                continue;
+
+            sb.Append(ch);
+            prev = ch;
+        }
+        return sb.ToString();
     }
 }

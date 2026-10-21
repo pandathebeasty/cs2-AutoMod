@@ -11,5 +11,6 @@
   "log.Punish": "PUNISH -> {0}",
   "log.NameCheck": "[{0}] NameCheck | '{1}' ({2}) -> '{3}' | {4}",
   "log.Renamed": "renamed",
-  "log.RenamedPunish": "PUNISH -> {0} + renamed"
+  "log.RenamedPunish": "PUNISH -> {0} + renamed",
+  "log.Message": " | msg: {0}"
 }

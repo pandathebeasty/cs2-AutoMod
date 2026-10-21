@@ -56,6 +56,27 @@ public sealed class AutoModConfig : BasePluginConfig
     [JsonPropertyName("FilterBypass")]
     public List<string> FilterBypass { get; set; } = ["example.com", "yourserver.net"];
 
+    /// <summary>
+    /// When true, chat/name checks also run against a "normalized" copy of the text that defeats
+    /// common bypasses: repeated letters are collapsed (puuulaaa -> pula) and separators between
+    /// letters are stripped (p.u.l.a / p u l a / p-u-l-a -> pula). This makes the plain-word rules
+    /// catch spaced-out / stretched spellings without needing a regex for each word. Default: true.
+    /// </summary>
+    [JsonPropertyName("NormalizeText")]
+    public bool NormalizeText { get; set; } = true;
+
+    /// <summary>
+    /// How many times, and how far apart (seconds), NameCheck re-scans a connecting player's name.
+    /// A player's name is not always set 0.5s after connect (reconnects, busy servers), so one check
+    /// can miss it. The scan repeats until the name is non-empty or the attempts run out. Default:
+    /// 5 attempts, 1s apart (plus an initial 0.5s delay).
+    /// </summary>
+    [JsonPropertyName("NameCheckAttempts")]
+    public int NameCheckAttempts { get; set; } = 5;
+
+    [JsonPropertyName("NameCheckRetrySeconds")]
+    public double NameCheckRetrySeconds { get; set; } = 1.0;
+
     [JsonPropertyName("Language")]
     public CheckConfig Language { get; set; } = new()
     {
@@ -90,7 +111,8 @@ public sealed class AutoModConfig : BasePluginConfig
 /// player's Steam avatar - resolved from the public profile XML, no Steam API key needed).
 ///
 /// Placeholders available in Format / EmbedTitle / EmbedDescription:
-///   {category} {name} {steamid} {userid} {strikes} {threshold} {punish} {time}
+///   {category} {name} {steamid} {userid} {strikes} {threshold} {punish} {message} {time}
+/// ({message} is the blocked chat line; empty for NameCheck.)
 /// </summary>
 public sealed class DiscordConfig
 {
@@ -116,7 +138,7 @@ public sealed class DiscordConfig
     // ---- text mode ----
     /// <summary>Message template for "text" mode. Supports the placeholders listed above.</summary>
     [JsonPropertyName("Format")]
-    public string Format { get; set; } = "**{category}** | `{name}` ({steamid}) | strikes {strikes}/{threshold} | {punish}";
+    public string Format { get; set; } = "**{category}** | `{name}` ({steamid}) | strikes {strikes}/{threshold} | {punish}\n> {message}";
 
     // ---- embed mode ----
     /// <summary>Embed title (embed mode).</summary>
@@ -125,7 +147,7 @@ public sealed class DiscordConfig
 
     /// <summary>Embed description (embed mode).</summary>
     [JsonPropertyName("EmbedDescription")]
-    public string EmbedDescription { get; set; } = "**{name}** (`{steamid}`)\nStrikes: **{strikes}/{threshold}**\n{punish}";
+    public string EmbedDescription { get; set; } = "**{name}** (`{steamid}`)\nStrikes: **{strikes}/{threshold}**\n{punish}\n**Message:** {message}";
 
     /// <summary>Embed side-colour as a hex string (e.g. "#e23b3b").</summary>
     [JsonPropertyName("EmbedColor")]
