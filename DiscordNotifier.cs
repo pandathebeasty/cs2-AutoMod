@@ -69,11 +69,25 @@ public sealed class DiscordNotifier
     {
         var obj = new Dictionary<string, object?>
         {
-            ["content"] = Apply(cfg.Format, f)
+            ["content"] = WithMessageLine(cfg.Format, f, "\n> {0}")
         };
         if (!string.IsNullOrWhiteSpace(cfg.Username)) obj["username"] = cfg.Username;
         if (!string.IsNullOrWhiteSpace(cfg.AvatarUrl)) obj["avatar_url"] = cfg.AvatarUrl;
         return JsonSerializer.Serialize(obj);
+    }
+
+    /// <summary>
+    /// Applies the template, then appends the blocked chat line (using <paramref name="lineFormat"/>)
+    /// ONLY when there is a message AND the template did not already include {message}. This keeps
+    /// NameCheck (no message) from producing an empty "&gt;" line.
+    /// </summary>
+    private static string WithMessageLine(string template, IReadOnlyDictionary<string, string> f, string lineFormat)
+    {
+        var text = Apply(template, f);
+        var message = f.TryGetValue("message", out var m) ? m : "";
+        if (!string.IsNullOrWhiteSpace(message) && !template.Contains("{message}"))
+            text += string.Format(lineFormat, message);
+        return text;
     }
 
     private static string BuildEmbed(DiscordConfig cfg, IReadOnlyDictionary<string, string> f, string? avatar)
@@ -81,7 +95,7 @@ public sealed class DiscordNotifier
         var embed = new Dictionary<string, object?>
         {
             ["title"] = Apply(cfg.EmbedTitle, f),
-            ["description"] = Apply(cfg.EmbedDescription, f),
+            ["description"] = WithMessageLine(cfg.EmbedDescription, f, "\n**Message:** {0}"),
             ["color"] = HexToColor(cfg.EmbedColor),
             ["timestamp"] = DateTime.UtcNow.ToString("o")
         };

@@ -112,7 +112,9 @@ public sealed class AutoModConfig : BasePluginConfig
 ///
 /// Placeholders available in Format / EmbedTitle / EmbedDescription:
 ///   {category} {name} {steamid} {userid} {strikes} {threshold} {punish} {message} {time}
-/// ({message} is the blocked chat line; empty for NameCheck.)
+/// {message} is the blocked chat line. It is EMPTY for NameCheck (a rename, not a message); in that
+/// case any "{message}" you put in a template collapses to nothing. If a template does not contain
+/// {message}, the blocked chat line is appended automatically on its own line (chat checks only).
 /// </summary>
 public sealed class DiscordConfig
 {
@@ -138,7 +140,7 @@ public sealed class DiscordConfig
     // ---- text mode ----
     /// <summary>Message template for "text" mode. Supports the placeholders listed above.</summary>
     [JsonPropertyName("Format")]
-    public string Format { get; set; } = "**{category}** | `{name}` ({steamid}) | strikes {strikes}/{threshold} | {punish}\n> {message}";
+    public string Format { get; set; } = "**{category}** | `{name}` ({steamid}) | strikes {strikes}/{threshold} | {punish}";
 
     // ---- embed mode ----
     /// <summary>Embed title (embed mode).</summary>
@@ -147,7 +149,7 @@ public sealed class DiscordConfig
 
     /// <summary>Embed description (embed mode).</summary>
     [JsonPropertyName("EmbedDescription")]
-    public string EmbedDescription { get; set; } = "**{name}** (`{steamid}`)\nStrikes: **{strikes}/{threshold}**\n{punish}\n**Message:** {message}";
+    public string EmbedDescription { get; set; } = "**{name}** (`{steamid}`)\nStrikes: **{strikes}/{threshold}**\n{punish}";
 
     /// <summary>Embed side-colour as a hex string (e.g. "#e23b3b").</summary>
     [JsonPropertyName("EmbedColor")]
