@@ -95,6 +95,29 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         info.ReplyToCommand("[AutoMod] Word files reloaded.");
     }
 
+    [ConsoleCommand("css_automod_check", "Re-runs the name check on every connected player and renames anyone who matches.")]
+    [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+    public void OnCheck(CCSPlayerController? _, CommandInfo info)
+    {
+        if (!Config.NameCheck.Enabled)
+        {
+            info.ReplyToCommand("[AutoMod] NameCheck is disabled in the config.");
+            return;
+        }
+
+        var count = 0;
+        foreach (var player in Utilities.GetPlayers())
+        {
+            if (player is not { IsValid: true } || player.IsBot || player.IsHLTV)
+                continue;
+
+            count++;
+            CheckName(player); // renames (with retries) if the name matches a rule
+        }
+
+        info.ReplyToCommand($"[AutoMod] Name check run on {count} player(s).");
+    }
+
     private void LoadWordFiles()
     {
         // Logger may now be available (OnConfigParsed can run before/after Load); wire it in.
@@ -328,6 +351,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
         RunPunishment(player, Config.NameCheck.PunishCommand);
 
         var replacement = Config.NameCheck.ReplacementName;
+        
         player.PlayerName = replacement;
         Utilities.SetStateChanged(player, "CCSPlayerController", "m_iszPlayerName");
         Server.NextFrame(() =>
