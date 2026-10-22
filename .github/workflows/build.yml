@@ -52,13 +52,6 @@ jobs:
               ${{ env.OUTPUT_PATH }}/plugins/${{ env.PROJECT_NAME }}/
           fi
 
-          for file in advertising.txt language.txt names.txt; do
-            if [ -f "$file" ]; then
-              cp "$file" \
-                ${{ env.OUTPUT_PATH }}/plugins/${{ env.PROJECT_NAME }}/
-            fi
-          done
-
       - name: Create ZIP
         run: |
           zip -r \
