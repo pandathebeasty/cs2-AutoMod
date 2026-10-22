@@ -90,13 +90,6 @@ jobs:
 
             addons/counterstrikesharp/plugins/
 
-            This package includes:
-            - AutoMod.dll
-            - lang/
-            - advertising.txt
-            - language.txt
-            - names.txt
-
             The plugin will be loaded automatically by CounterStrikeSharp.
 
             Restart or reload the server after installation.
