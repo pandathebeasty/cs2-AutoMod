@@ -25,7 +25,7 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     public override string ModuleName => "AutoMod";
     public override string ModuleAuthor => "panda";
     public override string ModuleDescription => "Automatic chat & name moderation: language, advertising, spam, names.";
-    public override string ModuleVersion => "1.1.2";
+    public override string ModuleVersion => "1.1.3";
 
     public AutoModConfig Config { get; set; } = new();
 
@@ -89,6 +89,51 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             _messageTimes[slot].Clear();
             for (var c = 0; c < 3; c++) { _strikes[slot, c] = 0; _lastStrikeTime[slot, c] = 0; }
         });
+
+        // Purge old log files on load, then once a day while the server runs.
+        PurgeOldLogs();
+        AddTimer(86400.0f, PurgeOldLogs, TimerFlags.REPEAT);
+    }
+
+    /// <summary>
+    /// Deletes files in the "logs" folder older than Config.LogRetentionDays (by last-write time).
+    /// 0 = keep forever. Safe/no-op if the folder doesn't exist; never throws into the game loop.
+    /// </summary>
+    private void PurgeOldLogs()
+    {
+        var days = Config.LogRetentionDays;
+        if (days <= 0) return;
+
+        try
+        {
+            var dir = Path.Combine(ModuleDirectory, "logs");
+            if (!Directory.Exists(dir)) return;
+
+            var cutoff = DateTime.Now.AddDays(-days);
+            var deleted = 0;
+            foreach (var file in Directory.EnumerateFiles(dir, "*.log"))
+            {
+                try
+                {
+                    if (File.GetLastWriteTime(file) < cutoff)
+                    {
+                        File.Delete(file);
+                        deleted++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning("[AutoMod] Could not delete old log {File}: {Err}", Path.GetFileName(file), ex.Message);
+                }
+            }
+
+            if (deleted > 0)
+                Logger.LogInformation("[AutoMod] Purged {Count} log file(s) older than {Days} day(s).", deleted, days);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("[AutoMod] Log purge failed: {Err}", ex.Message);
+        }
     }
 
     public override void OnAllPluginsLoaded(bool hotReload)

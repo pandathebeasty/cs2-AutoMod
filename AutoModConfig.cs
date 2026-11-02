@@ -48,6 +48,13 @@ public sealed class AutoModConfig : BasePluginConfig
     public string LogFileDateFormat { get; set; } = "dd-MM-yyyy";
 
     /// <summary>
+    /// Delete log files in the "logs" folder older than this many days. Checked on plugin load and
+    /// once a day while running. 0 = never purge (keep logs forever). Default: 30.
+    /// </summary>
+    [JsonPropertyName("LogRetentionDays")]
+    public int LogRetentionDays { get; set; } = 30;
+
+    /// <summary>
     /// Whitelist of substrings that are NEVER blocked, even if a rule would match them. Checked
     /// case-insensitively against the whole message (and player name for NameCheck) before any rule:
     /// if the text contains one of these, that content is allowed through. Use it to protect your
