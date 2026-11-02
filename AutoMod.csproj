@@ -13,6 +13,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Shared ChatManager API. Soft dependency: Private=false so the DLL is NOT copied next to this
+         plugin - it ships once in addons/counterstrikesharp/shared. When ChatManager is present,
+         AutoMod moderates chat through its message filter (so tagged players are checked too);
+         when it is absent, AutoMod falls back to its own say hook. -->
+    <Reference Include="ChatManagerApi">
+      <HintPath>3rd_party\ChatManagerApi.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="lang\**\*.*" CopyToOutputDirectory="PreserveNewest" />
     <None Update="language.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Update="advertising.txt" CopyToOutputDirectory="PreserveNewest" />

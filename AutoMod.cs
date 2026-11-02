@@ -1,6 +1,8 @@
 using CounterStrikeSharp.API;
+using ChatManagerApi;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Timers;
@@ -15,19 +17,15 @@ namespace AutoMod;
 ///   - Language    : whole-word / regex rules from a text file
 ///   - Advertising : whole-word / regex rules from a text file
 ///   - Spam        : more than MaxMessages within IntervalSeconds
-/// Plus NameCheck: a connecting player whose NAME matches a rule is renamed.
+///   - NameCheck   : a connecting player whose NAME matches a rule is renamed.
 ///
-/// A chat violation BLOCKS the message and adds one strike for that category; at the category's
-/// Threshold its console PunishCommand runs and the strikes reset. Players with the exempt flag are
-/// never checked. Any text containing a FilterBypass entry is always allowed (protects your own
-/// server names, e.g. "go.laleagane.ro").
 /// </summary>
 public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
 {
     public override string ModuleName => "AutoMod";
     public override string ModuleAuthor => "panda";
     public override string ModuleDescription => "Automatic chat & name moderation: language, advertising, spam, names.";
-    public override string ModuleVersion => "1.1.1";
+    public override string ModuleVersion => "1.1.2";
 
     public AutoModConfig Config { get; set; } = new();
 
@@ -43,6 +41,12 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
     private readonly double[,] _lastStrikeTime = new double[64, 3];
 
     private DiscordNotifier? _discord;
+
+    // When ChatManager is present, AutoMod moderates via its message filter (so tagged players are
+    // checked too) and its own say hook steps aside to avoid double-checking. Null = ChatManager not
+    // installed, so the own say hook does the moderation.
+    private IChatManagerApi? _chatManager;
+    private const string FilterName = "automod";
 
     public AutoMod()
     {
@@ -85,6 +89,46 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
             _messageTimes[slot].Clear();
             for (var c = 0; c < 3; c++) { _strikes[slot, c] = 0; _lastStrikeTime[slot, c] = 0; }
         });
+    }
+
+    public override void OnAllPluginsLoaded(bool hotReload)
+    {
+        // Prefer moderating through ChatManager so chat is checked for tagged players too (ChatManager
+        // otherwise consumes their messages on the say hook before AutoMod can act). Soft dependency:
+        // if ChatManager is not installed, AutoMod's own say hook keeps doing the moderation.
+        try
+        {
+            _chatManager = IChatManagerApi.Capability.Get();
+        }
+        catch
+        {
+            _chatManager = null;
+        }
+
+        if (_chatManager != null)
+        {
+            _chatManager.RegisterMessageFilter(FilterName, OnModerateFilter);
+            Logger.LogInformation("[AutoMod] ChatManager found - moderating via its message filter (tagged players included).");
+        }
+        else
+        {
+            Logger.LogInformation("[AutoMod] ChatManager not found - moderating via AutoMod's own chat hook.");
+        }
+    }
+
+    public override void Unload(bool hotReload)
+    {
+        try { _chatManager?.UnregisterMessageFilter(FilterName); }
+        catch { /* ignore */ }
+    }
+
+    /// <summary>
+    /// ChatManager message filter: returns true to BLOCK the message. Runs for every player (tagged
+    /// or not) before ChatManager sends the line.
+    /// </summary>
+    private bool OnModerateFilter(CCSPlayerController player, string message, bool teamOnly)
+    {
+        return Moderate(player, message);
     }
 
     [ConsoleCommand("css_automod_reload", "Reloads AutoMod word files.")]
@@ -154,47 +198,68 @@ public class AutoMod : BasePlugin, IPluginConfig<AutoModConfig>
 
     private HookResult OnSay(CCSPlayerController? player, CommandInfo info)
     {
-        if (player is not { IsValid: true } || player.IsBot || player.IsHLTV)
+        // When ChatManager is present it drives moderation through the registered filter, so the own
+        // hook stays out of the way (otherwise a message would be checked twice).
+        if (_chatManager != null)
             return HookResult.Continue;
 
-        var slot = player.Slot;
-        if (slot < 0 || slot >= 64)
+        if (player is not { IsValid: true } || player.IsBot || player.IsHLTV)
             return HookResult.Continue;
 
         var message = info.GetArg(1);
         if (string.IsNullOrWhiteSpace(message))
             return HookResult.Continue;
 
+        return Moderate(player, message) ? HookResult.Handled : HookResult.Continue;
+    }
+
+    /// <summary>
+    /// Runs the chat checks (language / advertising / spam) for one message and applies strikes /
+    /// punishment. Returns true if the message should be BLOCKED. Shared by the ChatManager filter
+    /// and the fallback say hook.
+    /// </summary>
+    private bool Moderate(CCSPlayerController player, string message)
+    {
+        if (player is not { IsValid: true } || player.IsBot || player.IsHLTV)
+            return false;
+
+        var slot = player.Slot;
+        if (slot < 0 || slot >= 64)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(message))
+            return false;
+
         // Admins with the bypass flag are never checked.
         if (!string.IsNullOrEmpty(Config.FlagBypass) && AdminManager.PlayerHasPermissions(player, Config.FlagBypass))
-            return HookResult.Continue;
+            return false;
 
         // Whitelisted content (e.g. own server names) is always allowed.
         if (IsBypassed(message))
-            return HookResult.Continue;
+            return false;
 
         // Language.
         if (Config.Language.Enabled && _language.IsMatch(message))
         {
             Handle(player, Category.Language, Config.Language.Threshold, Config.Language.PunishCommand, message);
-            return HookResult.Handled; // block the message
+            return true; // block the message
         }
 
         // Advertising.
         if (Config.Advertising.Enabled && _advertising.IsMatch(message))
         {
             Handle(player, Category.Advertising, Config.Advertising.Threshold, Config.Advertising.PunishCommand, message);
-            return HookResult.Handled;
+            return true;
         }
 
         // Spam.
         if (Config.Spam.Enabled && IsSpam(slot))
         {
             Handle(player, Category.Spam, Config.Spam.Threshold, Config.Spam.PunishCommand, message);
-            return HookResult.Handled;
+            return true;
         }
 
-        return HookResult.Continue;
+        return false;
     }
 
     /// <summary>Records this message's timestamp and returns true if the sliding window is over the limit.</summary>
